@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <rect width="128" height="128" rx="28" fill="#F8F5ED"/>
+  <rect width="122" height="122" x="3" y="3" rx="25" fill="#F0E9DA" stroke="#185C46" stroke-width="3"/>
+  <!-- Elegant ceramic bowl/plate -->
+  <ellipse cx="64" cy="84" rx="42" ry="14" fill="#FAF7F2" stroke="#E2D9C5" stroke-width="2"/>
+  <!-- Wholesome pancake stack -->
+  <ellipse cx="64" cy="74" rx="32" ry="9" fill="#D99414"/>
+  <ellipse cx="64" cy="65" rx="30" ry="8.5" fill="#E6A728"/>
+  <ellipse cx="64" cy="56" rx="28" ry="8" fill="#F2BE54"/>
+  <!-- Fresh botanical leaf emblem -->
+  <path d="M 64,24 C 76,28 82,42 64,48 C 46,42 52,28 64,24 Z" fill="#185C46"/>
+  <path d="M 64,24 L 64,46" stroke="#FAF7F2" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0B1120">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="حاسبة أكلي">
+  <meta name="description" content="حاسبة السعرات والماكروز الدقيقة لوجبات البانكيك وبانيه الفراخ مع الأرز البسمتي بدون إنترنت">
+  
+  <title>حاسبة أكلي | بانكيك وبانيه</title>
+  
+  <link rel="icon" type="image/svg+xml" href="./icons/favicon.svg">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- ======================================================================
+         VIEW 1: HOME (الرئيسية)
+         ====================================================================== -->
+    <main id="view-home" class="view active" role="main">
+      <!-- Top Brand Header -->
+      <header class="app-header">
+        <div class="brand-wrapper">
+          <div class="brand-icon">
+            <img src="./icons/favicon.svg" alt="أيقونة حاسبة أكلي" width="26" height="26">
+          </div>
+          <div class="brand-info">
+            <h1>حاسبة <span class="accent">أكلي</span></h1>
+            <p>بانكيك وبانيه بدقة تامة</p>
+          </div>
+        </div>
+        <div id="connection-status" class="offline-badge">
+          <span class="dot"></span>
+          <span>شغال أوفلاين</span>
+        </div>
+      </header>
+
+      <!-- Date Navigator Strip -->
+      <section class="date-strip" aria-label="اختيار التاريخ">
+        <button id="btn-prev-day" class="date-nav-btn" aria-label="اليوم السابق">◀ أمس</button>
+        <div class="date-center" id="date-picker-trigger">
+          <span id="date-display-label" class="date-center-label">تاريخ السجل</span>
+          <span id="date-display-text" class="date-center-val">النهاردة 📅</span>
+          <input type="date" id="date-picker-input" class="date-hidden-input" aria-label="تحديد تاريخ السجل">
+        </div>
+        <button id="btn-next-day" class="date-nav-btn" aria-label="اليوم التالي">غداً ▶</button>
+      </section>
+
+      <!-- Daily Totals Summary Hero Card with Macro Donut Chart -->
+      <section class="daily-summary-card" aria-label="إجمالي اليوم">
+        <div class="summary-top-row">
+          <span class="summary-title">🔥 إجمالي ماكروز اليوم</span>
+          <div class="summary-top-badges">
+            <button id="btn-set-goal" class="goal-chip-btn" type="button" title="اضغط لتعديل هدف السعرات اليومي">
+              🎯 الهدف: <span id="summary-goal-val">2,000</span> ك
+            </button>
+            <span id="summary-meal-count" class="meal-count-badge">0 وجبات</span>
+          </div>
+        </div>
+
+        <!-- SVG Donut Chart + Macro Legend Row -->
+        <div class="summary-chart-and-stats">
+          <!-- Circular Donut SVG Chart -->
+          <div class="macro-donut-wrapper">
+            <svg class="macro-donut-svg" viewBox="0 0 160 160" width="130" height="130" aria-label="مخطط توزيع السعرات والماكروز">
+              <!-- Outer Goal Track & Ring (Radius = 70, Circumference = 439.82) -->
+              <circle class="donut-goal-track" cx="80" cy="80" r="70" />
+              <circle id="donut-goal-ring" class="donut-goal-ring" cx="80" cy="80" r="70" stroke-dasharray="439.8" stroke-dashoffset="439.8" />
+
+              <!-- Inner Macro Track (Radius = 57, Circumference = 358.14) -->
+              <circle class="donut-bg-circle" cx="80" cy="80" r="57" />
+              <!-- Protein (Green) -->
+              <circle id="donut-seg-protein" class="donut-seg protein" cx="80" cy="80" r="57" stroke-dasharray="0 358.14" stroke-dashoffset="0" />
+              <!-- Carbs (Gold) -->
+              <circle id="donut-seg-carbs" class="donut-seg carbs" cx="80" cy="80" r="57" stroke-dasharray="0 358.14" stroke-dashoffset="0" />
+              <!-- Fat (Rose) -->
+              <circle id="donut-seg-fat" class="donut-seg fat" cx="80" cy="80" r="57" stroke-dasharray="0 358.14" stroke-dashoffset="0" />
+            </svg>
+
+            <!-- Center Text in Donut -->
+            <div class="donut-center-info">
+              <span id="summary-total-cals" class="donut-center-num">0</span>
+              <span class="donut-center-unit">kcal</span>
+              <span id="donut-goal-percent-text" class="donut-center-sub">0% من الهدف</span>
+            </div>
+          </div>
+
+          <!-- Macro Percentages Legend Beside Donut -->
+          <div class="donut-legend-col">
+            <div class="legend-item protein">
+              <div class="legend-dot protein"></div>
+              <div class="legend-texts">
+                <span class="legend-name">بروتين (<span id="pct-protein">0%</span>)</span>
+                <strong id="legend-val-protein">0 جم</strong>
+              </div>
+            </div>
+            <div class="legend-item carbs">
+              <div class="legend-dot carbs"></div>
+              <div class="legend-texts">
+                <span class="legend-name">كارب (<span id="pct-carbs">0%</span>)</span>
+                <strong id="legend-val-carbs">0 جم</strong>
+              </div>
+            </div>
+            <div class="legend-item fat">
+              <div class="legend-dot fat"></div>
+              <div class="legend-texts">
+                <span class="legend-name">دهون (<span id="pct-fat">0%</span>)</span>
+                <strong id="legend-val-fat">0 جم</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Macro Pills -->
+        <div class="macros-grid">
+          <div class="macro-box protein">
+            <span class="macro-name">بروتين</span>
+            <span id="summary-total-protein" class="macro-value">0</span>
+            <span class="macro-unit">جم</span>
+          </div>
+          <div class="macro-box carbs">
+            <span class="macro-name">كارب</span>
+            <span id="summary-total-carbs" class="macro-value">0</span>
+            <span class="macro-unit">جم</span>
+          </div>
+          <div class="macro-box fat">
+            <span class="macro-name">دهون</span>
+            <span id="summary-total-fat" class="macro-value">0</span>
+            <span class="macro-unit">جم</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Ratio Bar -->
+        <div class="macro-ratio-bar" title="توزيع نسب الماكروز">
+          <div id="ratio-protein-bar" class="ratio-seg protein" style="width: 33.3%;"></div>
+          <div id="ratio-carbs-bar" class="ratio-seg carbs" style="width: 33.3%;"></div>
+          <div id="ratio-fat-bar" class="ratio-seg fat" style="width: 33.4%;"></div>
+        </div>
+      </section>
+
+      <!-- 1-Click Quick Add Section (Meal Prep) -->
+      <section class="quick-presets-section" aria-label="وجبات مجهزة سريعة">
+        <div class="quick-presets-header">
+          <div class="presets-title-wrap">
+            <span class="presets-icon">⚡</span>
+            <div>
+              <h2 class="presets-title">إضافة سريعة بنقرة واحدة (Meal Prep)</h2>
+              <p class="presets-subtitle">وجباتك المجهزة مسبقاً — اضغط الزر لإضافتها لليوم فوراً</p>
+            </div>
+          </div>
+        </div>
+        <div id="presets-list" class="presets-list-container">
+          <!-- Populated dynamically by JavaScript -->
+        </div>
+      </section>
+
+      <!-- Two Recipe Action Cards -->
+      <h2 class="recipes-section-title">أو افتح الحاسبة لتفصيل وتعديل المقادير:</h2>
+      <section class="recipe-cards-container" aria-label="الوصفات المتاحة">
+        <!-- Recipe 1: Pancake -->
+        <button id="card-open-pancake" class="recipe-card-btn" type="button">
+          <div class="recipe-card-left">
+            <div class="recipe-avatar">🥞</div>
+            <div class="recipe-text-info">
+              <h2>بانكيك الشوفان</h2>
+              <p>حساب دقيق للشوفان والزبادي واللبن والبيض</p>
+              <div class="recipe-badge-row">
+                <span class="mini-badge">فطار أو سناك</span>
+                <span class="mini-badge">افتراضي ~406 ك</span>
+              </div>
+            </div>
+          </div>
+          <div class="recipe-action-icon">➜</div>
+        </button>
+
+        <!-- Recipe 2: Chicken Paneh -->
+        <button id="card-open-chicken" class="recipe-card-btn" type="button">
+          <div class="recipe-card-left">
+            <div class="recipe-avatar">🍗</div>
+            <div class="recipe-text-info">
+              <h2>بانيه الفراخ والأرز</h2>
+              <p>توزيع سعرات النيئ والزيت على المستوي الفعلي</p>
+              <div class="recipe-badge-row">
+                <span class="mini-badge">غداء أو عشاء</span>
+                <span class="mini-badge">بدون بقسماط</span>
+              </div>
+            </div>
+          </div>
+          <div class="recipe-action-icon">➜</div>
+        </button>
+      </section>
+
+      <!-- Daily Logged Meals History List -->
+      <section class="history-section" aria-label="وجبات اليوم المسجلة">
+        <div class="history-section-header">
+          <h3>سجل وجبات هذا اليوم</h3>
+          <span id="meals-status-text" class="summary-title" style="font-size: 0.8rem;"></span>
+        </div>
+
+        <div id="meals-list" class="meals-list">
+          <!-- Filled dynamically by JavaScript -->
+        </div>
+      </section>
+
+      <!-- Active Dates Quick Navigator -->
+      <section class="history-section" aria-label="أيام سابقة بها وجبات">
+        <div class="history-section-header">
+          <h3 style="font-size: 0.85rem; color: var(--text-secondary);">أيام سابقة بها وجبات مسجلة:</h3>
+        </div>
+        <div id="recent-dates-chips" class="recent-dates-container">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- Backup & Data Safety Section -->
+      <section class="backup-section-card" aria-label="النسخ الاحتياطي والبيانات">
+        <div class="backup-title">
+          <span>💾 بياناتك وأمان السجلات</span>
+        </div>
+        <p class="backup-note">
+          بياناتك متخزنة محلياً في متصفحك على هذا الجهاز فقط ولا تتزامن تلقائياً عبر الأجهزة. لحماية سجلاتك أو نقلها لهاتف آخر، استخدم النسخ الاحتياطي:
+        </p>
+        <div class="backup-buttons-row">
+          <button id="btn-export-backup" class="btn-secondary" type="button">
+            <span>📥 تصدير نسخة (JSON)</span>
+          </button>
+          <button id="btn-import-trigger" class="btn-secondary" type="button">
+            <span>📤 استيراد نسخة</span>
+          </button>
+          <input type="file" id="file-import-input" accept=".json" style="display: none;">
+        </div>
+        <button id="btn-clear-all" class="btn-danger-outline" type="button">
+          <span>🗑️ مسح جميع السجلات والبيانات</span>
+        </button>
+      </section>
+    </main>
+
+    <!-- ======================================================================
+         VIEW 2: PANCAKE CALCULATOR (حاسبة البانكيك)
+         ====================================================================== -->
+    <section id="view-pancake" class="view" aria-label="حاسبة بانكيك الشوفان">
+      <!-- Navigation Top Bar -->
+      <nav class="calc-topbar">
+        <button id="btn-back-from-pancake" class="btn-back" type="button">
+          <span>← الرئيسية</span>
+        </button>
+        <h2 class="calc-title">حاسبة البانكيك</h2>
+        <button id="btn-reset-pancake" class="btn-reset-top" type="button" title="استعادة القيم الافتراضية">
+          <span>إعادة ضبط ↺</span>
+        </button>
+      </nav>
+
+      <!-- Sticky Live Macros Banner -->
+      <div class="sticky-macro-header">
+        <div class="macro-header-cal">
+          <span class="header-cal-label">السعرات</span>
+          <span class="header-cal-num"><strong id="pc-live-cals">406</strong> <span>kcal</span></span>
+        </div>
+        <div class="macro-header-triplet">
+          <div class="triplet-item p">
+            <span class="triplet-label">بروتين</span>
+            <span id="pc-live-p" class="triplet-val">23.4</span>
+          </div>
+          <div class="triplet-item c">
+            <span class="triplet-label">كارب</span>
+            <span id="pc-live-c" class="triplet-val">51.2</span>
+          </div>
+          <div class="triplet-item f">
+            <span class="triplet-label">دهون</span>
+            <span id="pc-live-f" class="triplet-val">12.3</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ingredients Form -->
+      <div class="form-section-card">
+        <div class="form-section-title">
+          <span>🥞 مقادير البانكيك الصحية</span>
+        </div>
+        <p class="form-section-subtitle">
+          عدّل الكميات بالجرام والمل، وستتحدث السعرات والماكروز تلقائياً في الحال.
+        </p>
+
+        <!-- 1. Oats -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🌾 شوفان</span>
+            <span id="pc-oats-info" class="ingredient-calc-info">233.4 ك | 10.1 بروتين</span>
+          </div>
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="pc-oats" data-step="5">-</button>
+            <input type="number" id="pc-oats" class="stepper-input" value="60" min="0" max="500" step="1">
+            <span class="stepper-unit">جم</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="pc-oats" data-step="5">+</button>
+          </div>
+          <div class="preset-chips">
+            <button class="chip-btn" type="button" data-target="pc-oats" data-val="40">40 جم</button>
+            <button class="chip-btn" type="button" data-target="pc-oats" data-val="50">50 جم</button>
+            <button class="chip-btn active" type="button" data-target="pc-oats" data-val="60">60 جم (الأساسي)</button>
+            <button class="chip-btn" type="button" data-target="pc-oats" data-val="70">70 جم</button>
+            <button class="chip-btn" type="button" data-target="pc-oats" data-val="80">80 جم</button>
+          </div>
+        </div>
+
+        <!-- 2. Yogurt Type & Grams -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🥛 زبادي</span>
+            <span id="pc-yogurt-info" class="ingredient-calc-info">61 ك | 3.5 بروتين</span>
+          </div>
+          <!-- Yogurt Radio Options (Exact 3 required) -->
+          <div class="segmented-pills">
+            <label class="pill-option">
+              <input type="radio" name="pc-yogurt-type" value="regular" checked>
+              <div class="pill-label">
+                <span>سادة عادي</span>
+                <span class="small-desc">61 ك/100جم</span>
+              </div>
+            </label>
+            <label class="pill-option">
+              <input type="radio" name="pc-yogurt-type" value="greek">
+              <div class="pill-label">
+                <span>يوناني سادة</span>
+                <span class="small-desc">97 ك/100جم</span>
+              </div>
+            </label>
+            <label class="pill-option">
+              <input type="radio" name="pc-yogurt-type" value="sweetened">
+              <div class="pill-label">
+                <span>زبادي محلى</span>
+                <span class="small-desc">102 ك/100جم</span>
+              </div>
+            </label>
+          </div>
+          <!-- Yogurt Quantity Stepper -->
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="pc-yogurt" data-step="10">-</button>
+            <input type="number" id="pc-yogurt" class="stepper-input" value="100" min="0" max="500" step="5">
+            <span class="stepper-unit">جم</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="pc-yogurt" data-step="10">+</button>
+          </div>
+          <div class="preset-chips">
+            <button class="chip-btn" type="button" data-target="pc-yogurt" data-val="80">80 جم</button>
+            <button class="chip-btn active" type="button" data-target="pc-yogurt" data-val="100">100 جم (الأساسي)</button>
+            <button class="chip-btn" type="button" data-target="pc-yogurt" data-val="125">125 جم</button>
+            <button class="chip-btn" type="button" data-target="pc-yogurt" data-val="170">170 جم (علبة كبيرة)</button>
+          </div>
+        </div>
+
+        <!-- 3. Egg -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🥚 بيض</span>
+            <span id="pc-egg-info" class="ingredient-calc-info">72 ك | 6.3 بروتين</span>
+          </div>
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="pc-egg" data-step="1">-</button>
+            <input type="number" id="pc-egg" class="stepper-input" value="1" min="0" max="6" step="1">
+            <span class="stepper-unit">بيضة</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="pc-egg" data-step="1">+</button>
+          </div>
+          <div class="preset-chips">
+            <button class="chip-btn active" type="button" data-target="pc-egg" data-val="1">1 بيضة</button>
+            <button class="chip-btn" type="button" data-target="pc-egg" data-val="2">2 بيضة</button>
+            <button class="chip-btn" type="button" data-target="pc-egg" data-val="3">3 بيضات</button>
+          </div>
+        </div>
+
+        <!-- 4. Milk Type & ML -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🥛 لبن (حليب)</span>
+            <span id="pc-milk-info" class="ingredient-calc-info">35 ك | 3.4 بروتين</span>
+          </div>
+          <!-- Milk Radio Options (Exact 3 required) -->
+          <div class="segmented-pills">
+            <label class="pill-option">
+              <input type="radio" name="pc-milk-type" value="skim" checked>
+              <div class="pill-label">
+                <span>خالي الدسم</span>
+                <span class="small-desc">35 ك/100مل</span>
+              </div>
+            </label>
+            <label class="pill-option">
+              <input type="radio" name="pc-milk-type" value="lowFat">
+              <div class="pill-label">
+                <span>قليل الدسم</span>
+                <span class="small-desc">46 ك/100مل</span>
+              </div>
+            </label>
+            <label class="pill-option">
+              <input type="radio" name="pc-milk-type" value="whole">
+              <div class="pill-label">
+                <span>كامل الدسم</span>
+                <span class="small-desc">62 ك/100مل</span>
+              </div>
+            </label>
+          </div>
+          <!-- Milk Quantity Stepper -->
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="pc-milk" data-step="10">-</button>
+            <input type="number" id="pc-milk" class="stepper-input" value="100" min="0" max="500" step="5">
+            <span class="stepper-unit">مل</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="pc-milk" data-step="10">+</button>
+          </div>
+          <div class="preset-chips">
+            <button class="chip-btn" type="button" data-target="pc-milk" data-val="50">50 مل</button>
+            <button class="chip-btn" type="button" data-target="pc-milk" data-val="75">75 مل</button>
+            <button class="chip-btn active" type="button" data-target="pc-milk" data-val="100">100 مل (الأساسي)</button>
+            <button class="chip-btn" type="button" data-target="pc-milk" data-val="150">150 مل</button>
+          </div>
+        </div>
+
+        <!-- 5. Vanilla -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🌿 فانيليا</span>
+            <span id="pc-vanilla-info" class="ingredient-calc-info">3 ك</span>
+          </div>
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="pc-vanilla" data-step="0.5">-</button>
+            <input type="number" id="pc-vanilla" class="stepper-input" value="1" min="0" max="10" step="0.5">
+            <span class="stepper-unit">مل</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="pc-vanilla" data-step="0.5">+</button>
+          </div>
+        </div>
+
+        <!-- 6. Baking Powder -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🥄 بيكنج بودر</span>
+            <span id="pc-bp-info" class="ingredient-calc-info">1.6 ك</span>
+          </div>
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="pc-bp" data-step="1">-</button>
+            <input type="number" id="pc-bp" class="stepper-input" value="3" min="0" max="15" step="0.5">
+            <span class="stepper-unit">جم</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="pc-bp" data-step="1">+</button>
+          </div>
+        </div>
+
+        <!-- 7. Diet Sweetener -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">✨ سكر دايت (اختياري)</span>
+            <span id="pc-sweetener-info" class="ingredient-calc-info">0 ك</span>
+          </div>
+          <div class="toggle-row">
+            <span class="toggle-label">صفر سعرات افتراضياً (ستيفيا / سكرالوز)</span>
+            <label class="switch">
+              <input type="checkbox" id="pc-sweetener-has-cals">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div id="pc-sweetener-custom-box" style="display: none; margin-top: 4px;">
+            <div class="stepper-control">
+              <button class="btn-step" type="button" data-action="dec" data-target="pc-sweetener-cals" data-step="5">-</button>
+              <input type="number" id="pc-sweetener-cals" class="stepper-input" value="0" min="0" max="200" step="1">
+              <span class="stepper-unit">سعر حراري</span>
+              <button class="btn-step" type="button" data-action="inc" data-target="pc-sweetener-cals" data-step="5">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. Cooking Oil for Pancake -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🫒 زيت تسوية للطاسة (اختياري)</span>
+            <span id="pc-oil-info" class="ingredient-calc-info">0 ك | 0 دهون</span>
+          </div>
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="pc-oil" data-step="1">-</button>
+            <input type="number" id="pc-oil" class="stepper-input" value="0" min="0" max="50" step="1">
+            <span class="stepper-unit">جم</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="pc-oil" data-step="1">+</button>
+          </div>
+          <div class="preset-chips">
+            <button class="chip-btn active" type="button" data-target="pc-oil" data-val="0">0 جم (بخاخ / تيفال)</button>
+            <button class="chip-btn" type="button" data-target="pc-oil" data-val="3">3 جم مسحة خفيفة (26 ك)</button>
+            <button class="chip-btn" type="button" data-target="pc-oil" data-val="5">5 جم (44 ك)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ingredient Nutrition Breakdown Accordion -->
+      <details class="nutrition-details-accordion">
+        <summary class="details-summary">
+          <span>📊 تفاصيل سعرات كل مكوّن في البانكيك</span>
+          <span>▼</span>
+        </summary>
+        <div id="pc-breakdown-details" class="details-content">
+          <!-- Populated by JS -->
+        </div>
+      </details>
+
+      <!-- Save to Daily Log Section -->
+      <section class="save-log-card" aria-label="حفظ وجبة البانكيك">
+        <div class="save-log-title">
+          <span>💾 حفظ البانكيك في سجل اليوم</span>
+        </div>
+
+        <div class="save-controls-row">
+          <div class="field-group">
+            <label class="field-label" for="pc-save-date">تاريخ الوجبة:</label>
+            <input type="date" id="pc-save-date" class="form-input">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="pc-custom-name">اسم الوجبة (اختياري):</label>
+            <input type="text" id="pc-custom-name" class="form-input" value="بانكيك شوفان صحي" placeholder="مثلاً: بانكيك الصباح">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">نوع الوجبة:</label>
+          <div class="meal-type-selector">
+            <label class="meal-type-opt">
+              <input type="radio" name="pc-meal-type" value="breakfast" checked>
+              <span class="meal-type-label">فطار</span>
+            </label>
+            <label class="meal-type-opt">
+              <input type="radio" name="pc-meal-type" value="lunch">
+              <span class="meal-type-label">غداء</span>
+            </label>
+            <label class="meal-type-opt">
+              <input type="radio" name="pc-meal-type" value="dinner">
+              <span class="meal-type-label">عشاء</span>
+            </label>
+            <label class="meal-type-opt">
+              <input type="radio" name="pc-meal-type" value="snack">
+              <span class="meal-type-label">سناك</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="save-actions-grid">
+          <button id="btn-save-pancake" class="btn-primary-action" type="button">
+            <span>✓ احفظ وجبة البانكيك في السجل</span>
+          </button>
+          <button id="btn-preset-pancake" class="btn-secondary-preset" type="button" title="حفظ هذه المقادير كوجبة سريعة بنقرة واحدة في الصفحة الرئيسية">
+            <span>⭐ حفظ كوجبة سريعة (Meal Prep)</span>
+          </button>
+        </div>
+      </section>
+    </section>
+
+    <!-- ======================================================================
+         VIEW 3: CHICKEN PANEH CALCULATOR (حاسبة البانيه والأرز)
+         ====================================================================== -->
+    <section id="view-chicken" class="view" aria-label="حاسبة بانيه الفراخ والأرز">
+      <!-- Navigation Top Bar -->
+      <nav class="calc-topbar">
+        <button id="btn-back-from-chicken" class="btn-back" type="button">
+          <span>← الرئيسية</span>
+        </button>
+        <h2 class="calc-title">حاسبة البانيه والأرز</h2>
+        <button id="btn-reset-chicken" class="btn-reset-top" type="button" title="استعادة القيم الافتراضية">
+          <span>إعادة ضبط ↺</span>
+        </button>
+      </nav>
+
+      <!-- Sticky Live Macros Banner -->
+      <div class="sticky-macro-header">
+        <div class="macro-header-cal">
+          <span class="header-cal-label">سعرات وجبتك</span>
+          <span class="header-cal-num"><strong id="ck-live-cals">0</strong> <span>kcal</span></span>
+        </div>
+        <div class="macro-header-triplet">
+          <div class="triplet-item p">
+            <span class="triplet-label">بروتين</span>
+            <span id="ck-live-p" class="triplet-val">0</span>
+          </div>
+          <div class="triplet-item c">
+            <span class="triplet-label">كارب</span>
+            <span id="ck-live-c" class="triplet-val">0</span>
+          </div>
+          <div class="triplet-item f">
+            <span class="triplet-label">دهون</span>
+            <span id="ck-live-f" class="triplet-val">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Callout -->
+      <div class="info-callout">
+        <span class="info-callout-icon">💡</span>
+        <span>
+          <strong>حساب دقيق خالي من البقسماط:</strong> يتم حساب سعرات الدجاج النيء والزيت بالكامل، ثم توزيعهما بنسبة وزن المستوي الفعلي بعد الطبخ مع إضافة الأرز البسمتي بشكل مستقل.
+        </span>
+      </div>
+
+      <!-- Step 1: Whole Batch Data (بيانات الطبخة الإجمالية) -->
+      <div class="form-section-card">
+        <div class="form-section-title">
+          <span>1️⃣ بيانات طبخة الفراخ بالكامل</span>
+        </div>
+        <p class="form-section-subtitle">
+          المرجع المعتمد: كل 1,000 جم دجاج نيء بدون جلد وعظم = 1,200 ك | 225 جم بروتين.
+        </p>
+
+        <!-- Raw Chicken Weight -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🍗 وزن الفراخ النية (للطبخة كلها)</span>
+            <span id="ck-raw-info" class="ingredient-calc-info">1200 ك إجمالي</span>
+          </div>
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="ck-raw-weight" data-step="50">-</button>
+            <input type="number" id="ck-raw-weight" class="stepper-input" value="1000" min="100" max="5000" step="50">
+            <span class="stepper-unit">جم نيء</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="ck-raw-weight" data-step="50">+</button>
+          </div>
+          <div class="preset-chips">
+            <button class="chip-btn" type="button" data-target="ck-raw-weight" data-val="800">800 جم</button>
+            <button class="chip-btn active" type="button" data-target="ck-raw-weight" data-val="1000">1,000 جم (كيلو)</button>
+            <button class="chip-btn" type="button" data-target="ck-raw-weight" data-val="1200">1,200 جم</button>
+            <button class="chip-btn" type="button" data-target="ck-raw-weight" data-val="1500">1,500 جم</button>
+          </div>
+        </div>
+
+        <!-- Total Cooked Weight of Batch (Crucial: User enters actual cooked weight!) -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">⚖️ إجمالي وزن الفراخ بعد الطبخ والاستواء</span>
+            <span id="ck-yield-badge" class="ingredient-calc-info">نسبة الاستواء: 62%</span>
+          </div>
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="ck-cooked-total" data-step="10">-</button>
+            <input type="number" id="ck-cooked-total" class="stepper-input" value="620" min="50" max="4000" step="10">
+            <span class="stepper-unit">جم مستوي</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="ck-cooked-total" data-step="10">+</button>
+          </div>
+          <p class="meal-details-snippet">
+            📌 اوزن كمية الفراخ المستوية بالكامل لما تخلص تسوية واكتب وزنها هنا. ده بيضمن دقة 100% لأن نسبة فقد السوائل بتختلف في كل طبخة.
+          </p>
+        </div>
+
+        <!-- Whole Batch Cooking Oil Selection (Exact 3 required) -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🫒 زيت تسوية الطبخة كلها</span>
+            <span id="ck-oil-info" class="ingredient-calc-info">0 ك إجمالي</span>
+          </div>
+          <div class="oil-cards-grid">
+            <label class="oil-card">
+              <input type="radio" name="ck-oil-opt" value="none" checked>
+              <div class="oil-card-box">
+                <span class="oil-title">بدون زيت</span>
+                <span class="oil-cals">0 ك (0 جم)</span>
+              </div>
+            </label>
+            <label class="oil-card">
+              <input type="radio" name="ck-oil-opt" value="oil15">
+              <div class="oil-card-box">
+                <span class="oil-title">15 جم زيت</span>
+                <span class="oil-cals">133 ك</span>
+              </div>
+            </label>
+            <label class="oil-card">
+              <input type="radio" name="ck-oil-opt" value="oil20">
+              <div class="oil-card-box">
+                <span class="oil-title">20 جم زيت</span>
+                <span class="oil-cals">177 ك</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: User's Portion (نصيب وجبتك اللي هتاكلها) -->
+      <div class="form-section-card">
+        <div class="form-section-title">
+          <span>2️⃣ نصيب وجبتك اللي هتاكلها دلوقتي</span>
+        </div>
+
+        <!-- Cooked Chicken Portion Weight -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🍗 وزن الفراخ المستوية في طبقك</span>
+            <span id="ck-portion-ratio-badge" class="ingredient-calc-info">نصيبك: 32.3% من الطبخة</span>
+          </div>
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="ck-portion-weight" data-step="10">-</button>
+            <input type="number" id="ck-portion-weight" class="stepper-input" value="200" min="10" max="1500" step="5">
+            <span class="stepper-unit">جم في الطبق</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="ck-portion-weight" data-step="10">+</button>
+          </div>
+          <div class="preset-chips">
+            <button class="chip-btn" type="button" data-target="ck-portion-weight" data-val="150">150 جم</button>
+            <button class="chip-btn" type="button" data-target="ck-portion-weight" data-val="180">180 جم</button>
+            <button class="chip-btn active" type="button" data-target="ck-portion-weight" data-val="200">200 جم</button>
+            <button class="chip-btn" type="button" data-target="ck-portion-weight" data-val="250">250 جم</button>
+            <button class="chip-btn" type="button" data-target="ck-portion-weight" data-val="300">300 جم</button>
+          </div>
+        </div>
+
+        <!-- Boiled Basmati Rice Cooked Weight -->
+        <div class="ingredient-row">
+          <div class="ingredient-label-bar">
+            <span class="ingredient-name">🍚 أرز بسمتي مسلوق (وزن مستوي)</span>
+            <span id="ck-rice-info" class="ingredient-calc-info">195 ك | 42 كارب</span>
+          </div>
+          <div class="stepper-control">
+            <button class="btn-step" type="button" data-action="dec" data-target="ck-rice-weight" data-step="25">-</button>
+            <input type="number" id="ck-rice-weight" class="stepper-input" value="150" min="0" max="1000" step="10">
+            <span class="stepper-unit">جم أرز</span>
+            <button class="btn-step" type="button" data-action="inc" data-target="ck-rice-weight" data-step="25">+</button>
+          </div>
+          <div class="preset-chips">
+            <button class="chip-btn" type="button" data-target="ck-rice-weight" data-val="0">بدون أرز (0 جم)</button>
+            <button class="chip-btn" type="button" data-target="ck-rice-weight" data-val="100">100 جم</button>
+            <button class="chip-btn active" type="button" data-target="ck-rice-weight" data-val="150">150 جم</button>
+            <button class="chip-btn" type="button" data-target="ck-rice-weight" data-val="200">200 جم</button>
+            <button class="chip-btn" type="button" data-target="ck-rice-weight" data-val="250">250 جم</button>
+          </div>
+          <p class="meal-details-snippet">
+            المرجع لكل 100 جم أرز بسمتي مسلوق: 130 سعر حراري، 2.7 جم بروتين، 28 جم كارب، 0.3 جم دهون.
+          </p>
+        </div>
+      </div>
+
+      <!-- Step 3: Calculation Outputs Breakdown (Exact Outputs Required) -->
+      <div class="form-section-card">
+        <div class="form-section-title">
+          <span>3️⃣ توزيع سعرات وماكروز وجبتك بالتفصيل</span>
+        </div>
+
+        <div class="chicken-breakdown-grid">
+          <div class="chicken-sub-card">
+            <span class="sub-card-title">🍗 سعرات الفراخ</span>
+            <span id="ck-out-chicken-cals" class="sub-card-val cyan">0 ك</span>
+            <span id="ck-out-chicken-raw-equiv" class="sub-card-note">تعادل ~322 جم نيء</span>
+          </div>
+
+          <div class="chicken-sub-card">
+            <span class="sub-card-title">🫒 نصيبك من الزيت</span>
+            <span id="ck-out-oil-cals" class="sub-card-val oil">0 ك</span>
+            <span id="ck-out-oil-grams" class="sub-card-note">نسبة مقتطعة حسب الوجبة</span>
+          </div>
+
+          <div class="chicken-sub-card">
+            <span class="sub-card-title">🍚 سعرات الأرز البسمتي</span>
+            <span id="ck-out-rice-cals" class="sub-card-val rice">0 ك</span>
+            <span id="ck-out-rice-carbs" class="sub-card-note">كارب صافي</span>
+          </div>
+
+          <div class="chicken-sub-card" style="background: rgba(34, 211, 238, 0.08); border-color: rgba(34, 211, 238, 0.3);">
+            <span class="sub-card-title" style="color: var(--cyan-primary);">🔥 إجمالي سعرات الوجبة</span>
+            <span id="ck-out-total-cals" class="sub-card-val" style="color: #FFFFFF; font-size: 1.3rem;">0 ك</span>
+            <span class="sub-card-note">شامل الفراخ والزيت والأرز</span>
+          </div>
+        </div>
+
+        <!-- Macros Breakdown Row -->
+        <div class="macros-grid">
+          <div class="macro-box protein">
+            <span class="macro-name">إجمالي بروتين</span>
+            <span id="ck-out-protein" class="macro-value">0</span>
+            <span class="macro-unit">جم</span>
+          </div>
+          <div class="macro-box carbs">
+            <span class="macro-name">إجمالي كارب</span>
+            <span id="ck-out-carbs" class="macro-value">0</span>
+            <span class="macro-unit">جم</span>
+          </div>
+          <div class="macro-box fat">
+            <span class="macro-name">إجمالي دهون</span>
+            <span id="ck-out-fat" class="macro-value">0</span>
+            <span class="macro-unit">جم</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Chicken Meal Card -->
+      <section class="save-log-card" aria-label="حفظ وجبة البانيه">
+        <div class="save-log-title">
+          <span>💾 حفظ وجبة البانيه في سجل اليوم</span>
+        </div>
+
+        <div class="save-controls-row">
+          <div class="field-group">
+            <label class="field-label" for="ck-save-date">تاريخ الوجبة:</label>
+            <input type="date" id="ck-save-date" class="form-input">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="ck-custom-name">اسم الوجبة (اختياري):</label>
+            <input type="text" id="ck-custom-name" class="form-input" value="وجبة بانيه وأرز بسمتي" placeholder="مثلاً: وجبة بعد التمرين">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">نوع الوجبة:</label>
+          <div class="meal-type-selector">
+            <label class="meal-type-opt">
+              <input type="radio" name="ck-meal-type" value="breakfast">
+              <span class="meal-type-label">فطار</span>
+            </label>
+            <label class="meal-type-opt">
+              <input type="radio" name="ck-meal-type" value="lunch" checked>
+              <span class="meal-type-label">غداء</span>
+            </label>
+            <label class="meal-type-opt">
+              <input type="radio" name="ck-meal-type" value="dinner">
+              <span class="meal-type-label">عشاء</span>
+            </label>
+            <label class="meal-type-opt">
+              <input type="radio" name="ck-meal-type" value="snack">
+              <span class="meal-type-label">سناك</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="save-actions-grid">
+          <button id="btn-save-chicken" class="btn-primary-action" type="button">
+            <span>✓ احفظ وجبة البانيه في السجل</span>
+          </button>
+          <button id="btn-preset-chicken" class="btn-secondary-preset" type="button" title="حفظ هذه المقادير كوجبة سريعة بنقرة واحدة في الصفحة الرئيسية">
+            <span>⭐ حفظ كوجبة سريعة (Meal Prep)</span>
+          </button>
+        </div>
+      </section>
+    </section>
+
+  </div><!-- /.app-container -->
+
+  <!-- ======================================================================
+       MODALS & DIALOGS
+       ====================================================================== -->
+  <!-- Goal Setting Modal -->
+  <div id="goal-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="goal-modal-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="goal-modal-title" class="modal-title">🎯 تحديد هدف السعرات اليومي</h3>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 12px; font-size: 0.85rem; color: var(--text-secondary);">
+          أدخل هدف السعرات اليومي لعرض نسبة استهلاكك في الحلقة الخارجية للمخطط:
+        </p>
+        <div class="stepper-control">
+          <button class="btn-step" type="button" data-action="dec" data-target="goal-input-modal" data-step="100">-</button>
+          <input type="number" id="goal-input-modal" class="stepper-input" value="2000" min="500" max="6000" step="50">
+          <span class="stepper-unit">kcal</span>
+          <button class="btn-step" type="button" data-action="inc" data-target="goal-input-modal" data-step="100">+</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="goal-modal-cancel" class="btn-secondary" type="button">إلغاء</button>
+        <button id="goal-modal-save" class="btn-primary-action" style="min-height: 40px; padding: 8px 18px;" type="button">حفظ الهدف</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Dialog (Generic Modal for Delete & Clear) -->
+  <div id="confirm-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="confirm-modal-title" class="modal-title">تأكيد الإجراء</h3>
+      </div>
+      <div id="confirm-modal-body" class="modal-body">
+        هل أنت متأكد من تنفيذ هذا الإجراء؟
+      </div>
+      <div class="modal-actions">
+        <button id="confirm-modal-cancel" class="btn-secondary" type="button">إلغاء</button>
+        <button id="confirm-modal-ok" class="btn-primary-action" style="min-height: 40px; padding: 8px 18px;" type="button">تأكيد</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Box -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- JavaScript -->
+  <script src="./app.js"></script>
+</body>
+</html>
